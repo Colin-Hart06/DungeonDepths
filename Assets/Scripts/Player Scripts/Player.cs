@@ -37,6 +37,8 @@ private Vector3 lastPlatformPosition;
     
     void Update()
     {
+        if(Time.timeScale==0f)
+        return;
         if (inputDisabled)
         {
             if (rig.velocity.y < 0)
@@ -54,7 +56,7 @@ private Vector3 lastPlatformPosition;
         
         CheckIfGrounded();
         
-        if (Input.GetKeyDown(KeyCode.Space)&&!inputDisabled)
+        if (Input.GetKeyDown(KeyCode.Space)&&!inputDisabled&&Time.timeScale!=0)
 {
     Grapple grapple = GetComponent<Grapple>();
     

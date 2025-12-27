@@ -83,7 +83,7 @@ public class Grapple : MonoBehaviour
         }
 
         // Update reticle
-        if (reticle != null)
+        if (reticle != null&&!pauseMenu.isPaused)
         {
             reticle.SetActive(true);
             reticle.transform.position = reticlePosition;

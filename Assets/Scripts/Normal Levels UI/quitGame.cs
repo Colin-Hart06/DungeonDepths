@@ -8,6 +8,7 @@ public class quitGame : MonoBehaviour
     void Start()
     {
         // Application.Quit();
+        Time.timeScale = 1f;
     }
 
     // Update is called once per frame

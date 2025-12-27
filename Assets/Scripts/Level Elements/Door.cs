@@ -40,13 +40,13 @@ public class Door : MonoBehaviour
         {
              tilemap.enabled = true;
         }
-        if(Input.GetKeyDown(KeyCode.R))
-        {
-            SceneManager.LoadScene(sceneName:"Main Menu");
-        }
-        if(Input.GetKeyDown(KeyCode.L))
-        {
-            KeyData.numKeysCollected++;
-        }
+        // if(Input.GetKeyDown(KeyCode.R))
+        // {
+        //     SceneManager.LoadScene(sceneName:"Main Menu");
+        // }
+        // if(Input.GetKeyDown(KeyCode.L))
+        // {
+        //     KeyData.numKeysCollected++;
+        // }
     }
 }
