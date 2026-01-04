@@ -70,8 +70,8 @@ public class lifeCounter : MonoBehaviour
 
         }
     }
-    static int min = 23;
-    static int max = 38;
+    static int min = 24;
+    static int max = min+15;
     static List<int> availableLevels = new List<int>();
     public void randomLevel()
 {

@@ -303,7 +303,7 @@ SpriteRenderer:
   m_SortingLayerID: -1178224181
   m_SortingLayer: 1
   m_SortingOrder: 100
-  m_Sprite: {fileID: 21300000, guid: 224f38906ae0fee48a8a7e8a6543fc97, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 8801991b925bd074faba21858a0ed7a8, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -377,7 +377,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 8, y: 8}
+    oldSize: {x: 2, y: 2}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -453,7 +453,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gt: {fileID: 0}
   grapple: {fileID: 4527922027296019158}
-  RespawnArea: {fileID: 0}
   sawAnim: {fileID: 2237486558535714870, guid: fd64de3e1a519af40b51fa594a747d3e, type: 3}
   kc: {fileID: 4655888826432841010}
 --- !u!95 &1576143988019250452
@@ -499,6 +498,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 769146586129235510}
     m_Modifications:
+    - target: {fileID: 624135517085498540, guid: 51018e358848d4b46991969109b42403, type: 3}
+      propertyPath: m_Color.b
+      value: 0.5597484
+      objectReference: {fileID: 0}
+    - target: {fileID: 624135517085498540, guid: 51018e358848d4b46991969109b42403, type: 3}
+      propertyPath: m_Color.g
+      value: 0.5597484
+      objectReference: {fileID: 0}
+    - target: {fileID: 624135517085498540, guid: 51018e358848d4b46991969109b42403, type: 3}
+      propertyPath: m_Color.r
+      value: 0.5597484
+      objectReference: {fileID: 0}
     - target: {fileID: 4058187230564974357, guid: 51018e358848d4b46991969109b42403, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
