@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,33 +10,37 @@ public class Death : MonoBehaviour
     public gameTimer gt;
     private Vector3 startPosition;
     private Rigidbody2D rig;
+    new private audioManager audio;
     void Start()
     {
         startPosition = transform.position;
         rig = GetComponent<Rigidbody2D>();
+        audio = audioManager.instance;
     }
 
     // Update is called once per frame
     public Grapple grapple;
-    void Update()
-    {
-        
-    }
     public SawAnimation sawAnim;
     public KeyCollect kc;
     void OnCollisionEnter2D(Collision2D col)
-{
-    if (col.gameObject.layer == 3)
     {
+        if (col.gameObject.layer == 3)
+        {
+            deathActions();
+        }
+    }
+    public void deathActions()
+        {
+        audio.Play("spike");
         gameObject.transform.position = startPosition;
-        rig.velocity = Vector2.zero;
-        if(gt != null)
+        rig.linearVelocity = Vector2.zero;
+        if (gt != null)
             gt.loseLife();
         grapple.Detatch();
-        
+
         // Reset ALL saws in the scene
-        SawAnimation[] allSaws = FindObjectsOfType<SawAnimation>();
-        foreach(SawAnimation saw in allSaws)
+        SawAnimation[] allSaws = FindObjectsByType<SawAnimation>(FindObjectsSortMode.None);
+        foreach (SawAnimation saw in allSaws)
         {
             saw.ResetPosition();
         }
@@ -45,4 +50,4 @@ public class Death : MonoBehaviour
         //reset key positions
     }
 }
-}
+

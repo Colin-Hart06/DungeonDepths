@@ -4,7 +4,10 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Ground
+  - Grass
+  - Brick
+  - Wood
+  - Stone
   layers:
   - Default
   - TransparentFX
@@ -47,4 +50,7 @@ TagManager:
     locked: 0
   - name: Player
     uniqueID: 3116743115
+    locked: 0
+  - name: Hook
+    uniqueID: 1425711919
     locked: 0

@@ -15,17 +15,23 @@ public class gameTimer : MonoBehaviour
     public int speedrunMode; //bool 1 = true, 0 = false
     private int livesLeft = 100; // Set default here
     public TextMeshProUGUI lifeText;
-    
+
+    new audioManager audio;
+
+
     void Start()
     {
-        if(PlayerPrefs.HasKey("timeValue"))
+        audio = audioManager.instance;
+
+        if (PlayerPrefs.HasKey("timeValue"))
         {
             currentTime = PlayerPrefs.GetFloat("timeValue");
         }
-        if(PlayerPrefs.HasKey("speed"))
-        {
-            speedrunMode = PlayerPrefs.GetInt("speed");
-        }
+        //if(PlayerPrefs.HasKey("speed"))
+        //{
+        //    speedrunMode = PlayerPrefs.GetInt("speed");
+        //}
+        speedrunMode = 1;
         if(PlayerPrefs.HasKey("lives"))
         {
             livesLeft = PlayerPrefs.GetInt("lives");
@@ -145,5 +151,25 @@ public class gameTimer : MonoBehaviour
     public void credits()
     {
         SceneManager.LoadScene("Credits");
+    }
+    public void Continue()
+    {
+        string load = PlayerPrefs.GetString("LevelName");
+        if (load != null)
+        {
+            if(load=="1-1"||load=="1-2"||load=="1-3"||load=="1-4"||load=="1-5")
+            {
+                audio.Play("Ground Theme");
+            }
+            if (load == "2-1" || load == "2-2" || load == "2-3" || load == "2-4" || load == "2-5")
+            {
+                audio.Play("Cave Theme");
+            }
+            if (load == "3-1" || load == "3-2" || load == "3-3" || load == "3-4" || load == "3-5")
+            {
+                audio.Play("Ground Theme");
+            }
+            SceneManager.LoadScene(load);
+        }
     }
 }

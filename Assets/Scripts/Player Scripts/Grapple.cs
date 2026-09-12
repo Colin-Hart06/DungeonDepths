@@ -1,12 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
+//using UnityEditor.Tilemaps;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class Grapple : MonoBehaviour
 {
-    public Camera cam;
+    private Camera cam;
     public LineRenderer lr;
     public GameObject reticle;  // Drag your reticle GameObject here
+    public GameObject hookEnd;
     public LayerMask grappleMask;
     public LayerMask ungrappableMask;  // Surfaces that block grapple but show reticle
     public float moveSpeed = 2;
@@ -15,6 +19,11 @@ public class Grapple : MonoBehaviour
     public float endpointRadius = 0.5f;  // Distance considered "at endpoint" for jumping
     [Min(1)]
     public int maxPoints = 3;
+    //private bool updateHookRotation;
+    private Vector2 hitPoint;
+    private SpriteRenderer spr;
+    public Sprite hookOpen;
+    public Sprite hookClosed;
 
     private Rigidbody2D rig;
     private List<Vector2> points = new List<Vector2>();
@@ -27,12 +36,17 @@ public class Grapple : MonoBehaviour
     // Track the grappled object and offset for moving targets
     private Transform grappledObject;
     private Vector2 grappleOffset;  // Track when we last detached
+    new private audioManager audio;
+    private string grappledTag;
 
     private void Start()
     {
+        cam = Camera.main;
+        spr = hookEnd.GetComponent<SpriteRenderer>();
         rig = GetComponent<Rigidbody2D>();
         lr.positionCount = 0;
-        
+        audio = audioManager.instance;
+
         if (reticle != null)
         {
             reticle.SetActive(false);
@@ -44,15 +58,15 @@ public class Grapple : MonoBehaviour
         // Check for valid grapple point and update reticle
         Vector2 mousePos = cam.ScreenToWorldPoint(Input.mousePosition);
         Vector2 direction = (mousePos - (Vector2)transform.position).normalized;
-        
+
         // Check both surfaces
         RaycastHit2D grappleHit = Physics2D.Raycast(transform.position, direction, grappleLength, grappleMask);
         RaycastHit2D blockedHit = Physics2D.Raycast(transform.position, direction, grappleLength, ungrappableMask);
-        
+
         // Determine which surface is closer and if we can grapple
         bool canGrapple = false;
         Vector2 reticlePosition = (Vector2)transform.position + direction * grappleLength;
-        
+
         if (grappleHit.collider != null && blockedHit.collider != null)
         {
             // Both hits - check which is closer
@@ -83,11 +97,11 @@ public class Grapple : MonoBehaviour
         }
 
         // Update reticle
-        if (reticle != null&&!pauseMenu.isPaused)
+        if (reticle != null && !pauseMenu.isPaused)
         {
             reticle.SetActive(true);
             reticle.transform.position = reticlePosition;
-            
+
             if (canGrapple)
             {
                 SetReticleColor(Color.white, 1f);
@@ -104,25 +118,23 @@ public class Grapple : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0))
         {
-            // Only allow grappling if we can actually grapple
             if (canGrapple && grappleHit.collider != null)
             {
-                Vector2 hitPoint = grappleHit.point;
-                
-                // Clear all previous hooks when firing a new one
+                hitPoint = grappleHit.point;
+
                 hookPositions.Clear();
                 targetPositions.Clear();
                 hooksConnected.Clear();
                 points.Clear();
-                
-                // Store the grappled object and calculate offset
+
                 grappledObject = grappleHit.collider.transform;
                 grappleOffset = hitPoint - (Vector2)grappledObject.position;
-                
-                // Add the new hook
+
                 hookPositions.Add((Vector2)transform.position);
                 targetPositions.Add(hitPoint);
                 hooksConnected.Add(false);
+
+                grappledTag = grappleHit.collider.tag; // NEW - store tag at fire time
             }
         }
 
@@ -132,16 +144,21 @@ public class Grapple : MonoBehaviour
             if (!hooksConnected[i])
             {
                 hookPositions[i] = Vector2.MoveTowards(hookPositions[i], targetPositions[i], hookSpeed * Time.deltaTime);
-                
+
                 if (Vector2.Distance(hookPositions[i], targetPositions[i]) < 0.1f)
                 {
                     hookPositions[i] = targetPositions[i];
                     hooksConnected[i] = true;
                     points.Add(targetPositions[i]);
+
+                    if (i == 0)
+                    {
+                        PlayGrappleHitSound(grappledTag);
+                    }
                 }
             }
         }
-        
+
         // Update grapple point if attached to a moving object
         if (hooksConnected.Count > 0 && hooksConnected[0] && grappledObject != null)
         {
@@ -160,17 +177,16 @@ public class Grapple : MonoBehaviour
             isGrappling = true;
             Vector2 moveTo = centriod(points.ToArray());
             float distanceToTarget = Vector2.Distance(transform.position, moveTo);
-            
+
             // Only pull if we're not already at the grapple point
             if (distanceToTarget > endpointRadius)
             {
                 Vector2 pullDirection = (moveTo - (Vector2)transform.position).normalized;
-                rig.velocity = pullDirection * moveSpeed;
+                rig.linearVelocity = pullDirection * moveSpeed;
             }
             else
             {
-                // Lock in place when we reach the point (counteract gravity)
-                rig.velocity = Vector2.zero;
+                rig.linearVelocity = Vector2.zero;
                 rig.MovePosition(moveTo);
             }
         }
@@ -181,13 +197,36 @@ public class Grapple : MonoBehaviour
 
         UpdateLineRenderer();
 
-        // Only detach if we're traveling (not at endpoint) - Player script handles endpoint jumps
+
         if (Input.GetKeyDown(KeyCode.Space) && points.Count > 0 && !IsAtEndpoint())
         {
             Detatch();
         }
-    }
 
+        //hookEnd Update
+        if (lr.positionCount == 2)
+        {
+            hookEnd.SetActive(true);
+            hookEnd.transform.position = lr.GetPosition(1);
+            Vector2 dir = (lr.GetPosition(1) - lr.GetPosition(0)).normalized;
+            hookEnd.transform.up = dir;
+        }
+        else
+        {
+            hookEnd.SetActive(false);
+        }
+        for (int i = 0; i < hookPositions.Count; i++)
+        {
+            if (hooksConnected[i])
+            {
+                spr.sprite = hookClosed;
+            }
+            else
+            {
+                spr.sprite = hookOpen;
+            }
+        }
+    }  
     void UpdateLineRenderer()
     {
         lr.positionCount = hookPositions.Count * 2;
@@ -307,6 +346,29 @@ public class Grapple : MonoBehaviour
         foreach (Vector2 point in points)
         {
             Gizmos.DrawLine(transform.position, point);
+        }
+    }
+    void PlayGrappleHitSound(string tag)
+    {
+        if (audio == null) return;
+
+        switch (tag)
+        {
+            case "Grass":
+                audio.Play("Hook Grass");
+                break;
+            case "Wood":
+                audio.Play("Hook Wood");
+                break;
+            case "Stone":
+                audio.Play("Hook Stone");
+                break;
+            case "Brick":
+                audio.Play("Hook Brick");
+                break;
+            default:
+                audio.Play("Hook Brick"); // fallback/default sound
+                break;
         }
     }
 }

@@ -29,19 +29,21 @@ public class Player : MonoBehaviour
 private Vector3 lastPlatformPosition;
     
     public bool inputDisabled;
+    new audioManager audio;
     void Start()
     {
+        audio = audioManager.instance;
         rig = GetComponent<Rigidbody2D>();
         spr = GetComponent<SpriteRenderer>();
     }
-    
+    private bool landSoundPlayed = true;
     void Update()
     {
         if(Time.timeScale==0f)
         return;
         if (inputDisabled)
         {
-            if (rig.velocity.y < 0)
+            if (rig.linearVelocity.y < 0)
             {
             animator.SetBool("IsJumping", true);
             }
@@ -50,37 +52,82 @@ private Vector3 lastPlatformPosition;
             return;
         }
         // Get input in Update for responsiveness
-        
-        horizontalInput = Input.GetAxisRaw("Horizontal");
+            horizontalInput = Input.GetAxisRaw("Horizontal");
         animator.SetFloat("Speed", Mathf.Abs(horizontalInput));
         
-        CheckIfGrounded();
-        
-        if (Input.GetKeyDown(KeyCode.Space)&&!inputDisabled&&Time.timeScale!=0)
-{
-    Grapple grapple = GetComponent<Grapple>();
-    
-    // If at grapple endpoint
-    if (grapple != null && grapple.IsAtEndpoint())
-    {
-        grapple.Detatch();
-        // Only jump if not holding down
-        if (Input.GetAxisRaw("Vertical") >= 0)
+        Collider2D collider = CheckIfGrounded();
+        if (isGrounded && !landSoundPlayed)
         {
-            Jump();
+            audio.Play("Land");
+            landSoundPlayed =true;
         }
-    }
-    // If still traveling to endpoint, just cancel
-    else if (grapple != null && grapple.IsGrappling())
-    {
-        grapple.Detatch();
-    }
-    // Normal ground jump
-    else if (isGrounded)
-    {
-        Jump();
-    }
-}
+        else if (!isGrounded)
+        {
+            landSoundPlayed = false;
+        }
+
+        if(isGrounded&& Mathf.Abs(horizontalInput) > 0&&collider.tag=="Grass"&&!audio.IsPlaying("Grass Walk"))
+        {
+            audio.Play("Grass Walk");
+        }
+        else if(horizontalInput==0||!isGrounded||collider.tag!="Grass")
+        {
+           audio.StopPlaying("Grass Walk");
+        }
+
+        if (isGrounded && Mathf.Abs(horizontalInput) > 0 && collider.tag == "Stone" && !audio.IsPlaying("Stone Walk"))
+        {
+            audio.Play("Stone Walk");
+        }
+        else if (horizontalInput == 0 || !isGrounded || collider.tag != "Stone")
+        {
+            audio.StopPlaying("Stone Walk");
+        }
+
+        if (isGrounded && Mathf.Abs(horizontalInput) > 0 && collider.tag == "Wood" && !audio.IsPlaying("Wood Walk"))
+        {
+            audio.Play("Wood Walk");
+        }
+        else if (horizontalInput == 0 || !isGrounded || collider.tag != "Wood")
+        {
+            audio.StopPlaying("Wood Walk");
+        }
+        if (isGrounded && Mathf.Abs(horizontalInput) > 0 && collider.tag == "Brick" && !audio.IsPlaying("Brick Steps"))
+        {
+            audio.Play("Brick Steps");
+        }
+        else if (horizontalInput == 0 || !isGrounded || collider.tag != "Brick")
+        {
+            audio.StopPlaying("Brick Steps");
+        }
+
+
+
+        if (Input.GetKeyDown(KeyCode.Space) && !inputDisabled && Time.timeScale != 0)
+        {
+            Grapple grapple = GetComponent<Grapple>();
+
+            // If at grapple endpoint
+            if (grapple != null && grapple.IsAtEndpoint())
+            {
+                grapple.Detatch();
+                // Only jump if not holding down
+                if (Input.GetAxisRaw("Vertical") >= 0)
+                {
+                    Jump();
+                }
+            }
+            // If still traveling to endpoint, just cancel
+            else if (grapple != null && grapple.IsGrappling())
+            {
+                grapple.Detatch();
+            }
+            // Normal ground jump
+            else if (isGrounded)
+            {
+                Jump();
+            }
+        }
     
     }
     
@@ -107,13 +154,13 @@ private Vector3 lastPlatformPosition;
     if (h != 0)
     {
         float targetSpeed = h * moveSpeed;
-        float speedDifference = targetSpeed - rig.velocity.x;
+        float speedDifference = targetSpeed - rig.linearVelocity.x;
         
         // Different acceleration based on ground/air
         float accelerationMultiplier = isGrounded ? 25f : 10f; // Slower in air
         
         // Only apply force if we're below max speed in that direction
-        if (Mathf.Abs(rig.velocity.x) < moveSpeed || Mathf.Sign(speedDifference) == Mathf.Sign(h))
+        if (Mathf.Abs(rig.linearVelocity.x) < moveSpeed || Mathf.Sign(speedDifference) == Mathf.Sign(h))
         {
             rig.AddForce(new Vector2(speedDifference * accelerationMultiplier, 0));
         }
@@ -121,7 +168,7 @@ private Vector3 lastPlatformPosition;
     else if (isGrounded && (grapple == null || !grapple.RecentlyDetached()))
     {
         // Stop immediately when on ground with no input
-        rig.velocity = new Vector2(0, rig.velocity.y);
+        rig.linearVelocity = new Vector2(0, rig.linearVelocity.y);
     }
     
     // Flip sprite based on movement direction
@@ -140,9 +187,10 @@ private Vector3 lastPlatformPosition;
     {
         rig.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
         animator.SetBool("IsJumping", true);
+        audio.Play("Jump");
     }
     
-    void CheckIfGrounded()
+    Collider2D CheckIfGrounded()
 {
     Collider2D colliders = Physics2D.OverlapCircle(isGroundChecker.position, checkGroundRadius, groundLayer);
     if (colliders != null)
@@ -169,18 +217,19 @@ private Vector3 lastPlatformPosition;
         }
         isGrounded = false;
         
-        if (rig.velocity.y < 0)
+        if (rig.linearVelocity.y < 0)
         {
             animator.SetBool("IsJumping", true);
         }
     }
+        return colliders;
 }
     
     void ApplyFallSpeedLimit()
     {
-        if (rig.velocity.y < maxFallSpeed)
+        if (rig.linearVelocity.y < maxFallSpeed)
         {
-            rig.velocity = new Vector2(rig.velocity.x, maxFallSpeed);
+            rig.linearVelocity = new Vector2(rig.linearVelocity.x, maxFallSpeed);
         }
     }
     void MoveWithPlatform()

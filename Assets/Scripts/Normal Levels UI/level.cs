@@ -18,6 +18,10 @@ public class level : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        levelText.text = scene.name;
+        if ((levelText!=null))
+        {
+            levelText.text = scene.name;
+        }
+        
     }
 }

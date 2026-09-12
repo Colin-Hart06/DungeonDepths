@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 public class Door : MonoBehaviour
 {
     // Start is called before the first frame update
+    new audioManager audio;
     public GameObject player;
     private KeyCollect KeyData;
     public int numKeys;
@@ -15,6 +16,7 @@ public class Door : MonoBehaviour
     {
         KeyData = player.GetComponent<KeyCollect>();
         tilemap = GetComponentInParent<TilemapRenderer>();
+        audio = audioManager.instance;
     }
 
         
@@ -29,16 +31,23 @@ public class Door : MonoBehaviour
             }
     }
     TilemapRenderer tilemap;
-    
+    private bool audioPlayed;
     void Update()
     {
         if(KeyData.numKeysCollected>=numKeys)
         {
             tilemap.enabled = false;
+            if (!audioPlayed)
+            {
+                audio.Play("Door Open");
+                audioPlayed = true;
+            }
+            
         }
         else
         {
              tilemap.enabled = true;
+            audioPlayed = false;
         }
         // if(Input.GetKeyDown(KeyCode.R))
         // {

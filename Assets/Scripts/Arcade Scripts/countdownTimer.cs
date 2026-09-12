@@ -53,7 +53,7 @@ public class CountdownTimer : MonoBehaviour
         Time.timeScale = 1f;
         
         // Optional: Start your game timer here
-        gameTimer gameTimerScript = FindObjectOfType<gameTimer>();
+        gameTimer gameTimerScript = FindAnyObjectByType<gameTimer>();
         if (gameTimerScript != null)
         {
             gameTimerScript.startTimer();

@@ -7,16 +7,13 @@ public class timeStopper : MonoBehaviour
 {
     // Start is called before the first frame update
     public gameTimer gt;
-    void Start()
+    new private audioManager audio;
+    private void Awake()
     {
-        
+        audio = audioManager.instance;
+        audio.FadeOut("Dungeon Theme", 2);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
     void OnCollisionEnter2D(Collision2D col)
     {
          Destroy(col.gameObject);
@@ -26,6 +23,7 @@ public class timeStopper : MonoBehaviour
     }
     private void endGame()
     {
+        audio.StopPlaying("Dungeon Theme");
         if(gt.speedrunMode==1)
         SceneManager.LoadScene(sceneName:"Try Again Speedrun");
         else

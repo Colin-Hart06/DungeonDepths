@@ -5,9 +5,10 @@ using UnityEngine;
 public class KeyCollect : MonoBehaviour
 {
     // Start is called before the first frame update
+    new audioManager audio;
     void Start()
     {
-        
+        audio = audioManager.instance;
     }
 public List<GameObject> keysCollected = new List<GameObject>();
     
@@ -26,6 +27,7 @@ public List<GameObject> keysCollected = new List<GameObject>();
             col.gameObject.SetActive(false);
             keysCollected.Add(col.gameObject);
             numKeysCollected++;
+            audio.Play("Key Collect");
         }        
     }
     public void resetKeys()
